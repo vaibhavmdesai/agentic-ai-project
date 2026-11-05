@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     aws_secret_access_key:str=''
     s3_bucket:str=''
     database_url:str=''  # Render PostgreSQL External Database URL
+    openai_api_key:str=''
     openai_embed_model:str=''
     openai_chat_model:str=''
     max_upload_bytes:int=10485760
