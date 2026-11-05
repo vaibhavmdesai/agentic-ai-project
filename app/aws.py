@@ -2,19 +2,27 @@ from functools import lru_cache
 from openai import OpenAI
 from app.config import settings
 from app.observability import trace
+import boto3
+from botocore.client import Config
 
 @lru_cache
-def client() -> OpenAI:
+def client():
     s = settings()
-    if not s.openai_api_key:
-        raise RuntimeError("OPENAI_API_KEY is missing. Set it in your .env or environment.")
-    return OpenAI(api_key=s.openai_api_key)
+    return boto3.client(
+        "s3",
+        endpoint_url=s.aws_endpoint_url,
+        aws_access_key_id=s.aws_access_key_id,
+        aws_secret_access_key=s.aws_secret_access_key,
+        config=Config(signature_version="s3v4"),  # Required for MinIO
+        region_name=s.aws_region,
+    )
 
 @trace("embed")
 def embed(text):
     s = settings()
+    openai = OpenAI(api_key=s.openai_api_key)
     model = s.openai_embed_model or "text-embedding-3-small"
-    response = client().embeddings.create(
+    response = openai.embeddings.create(
         model=model,
         input=text,
     )
@@ -23,6 +31,7 @@ def embed(text):
 @trace("answer")
 def answer(question, evidence, history=None):
     s = settings()
+    openai = OpenAI(api_key=s.openai_api_key)
     model = s.openai_chat_model or "gpt-4o-mini"
 
     recent = "\n".join(
@@ -42,7 +51,7 @@ def answer(question, evidence, history=None):
         f"EVIDENCE (untrusted quotations):\n{evidence}\n\nUSER QUESTION:\n{question}"
     )
 
-    response = client().chat.completions.create(
+    response = openai.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": system},
