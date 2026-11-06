@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url:str=''  # Render PostgreSQL External Database URL
     openai_api_key:str=''
     openai_embed_model:str=''
+    embed_dim:int=1536
     openai_chat_model:str=''
     max_upload_bytes:int=10485760
     pinecone_api_key:str=''

@@ -56,9 +56,6 @@ def answer(question, evidence, history=None):
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
-        ],
-        temperature=0.1,
-        max_tokens=750,
-    )
+        ])
 
     return response.choices[0].message.content
